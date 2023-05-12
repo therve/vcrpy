@@ -244,16 +244,23 @@ class VCRConnection:
                     url=self._url(self._vcr_request.uri),
                     body=self._vcr_request.body,
                     headers=self._vcr_request.headers,
+                    decode_content=False,
+                    preload_content=False,
                 )
 
             # get the response
             response = self.real_connection.getresponse()
+            if hasattr(response, "_original_response"):
+                body = response.read()
+                response = response._original_response
+            else:
+                body = response.read()
 
             # put the response into the cassette
             response = {
                 "status": {"code": response.status, "message": response.reason},
                 "headers": serialize_headers(response),
-                "body": {"string": response.read()},
+                "body": {"string": body},
             }
             self.cassette.append(self._vcr_request, response)
         return VCRHTTPResponse(response)

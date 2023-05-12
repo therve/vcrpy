@@ -130,6 +130,7 @@ def test_gzip(tmpdir, httpbin_both, verify_pool_mgr):
     """
     url = httpbin_both.url + "/gzip"
     response = verify_pool_mgr.request("GET", url)
+    assert_is_json(response.data)
 
     with vcr.use_cassette(str(tmpdir.join("gzip.yaml"))):
         response = verify_pool_mgr.request("GET", url)
@@ -145,7 +146,7 @@ def test_https_with_cert_validation_disabled(tmpdir, httpbin_secure, pool_mgr):
 
 
 def test_urllib3_force_reset():
-    cpool = urllib3.connectionpool
+    cpool = urllib3.connectionpool if hasattr(urllib3.connectionpool, "VerifiedHTTPSConnection") else urllib3.connection
     http_original = cpool.HTTPConnection
     https_original = cpool.HTTPSConnection
     verified_https_original = cpool.VerifiedHTTPSConnection
